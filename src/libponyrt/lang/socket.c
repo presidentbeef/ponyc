@@ -46,24 +46,28 @@ typedef int SOCKET;
 #include <netinet/in.h>
 #endif
 #ifdef PLATFORM_IS_LINUX
+#ifdef _GLIBC_
 #include <asm-generic/socket.h>
 #include <linux/atm.h>
 #include <linux/dn.h>
 #include <linux/rds.h>
-#ifndef ALPINE_LINUX
-#include <netatalk/at.h>
-#include <netax25/ax25.h>
-#include <netax25/ax25.h>
-#include <netipx/ipx.h>
-#include <netrom/netrom.h>
-#include <netrose/rose.h>
 #endif
+#ifndef ALPINE_LINUX
+//#include <netatalk/at.h>
+//#include <netax25/ax25.h>
+//#include <netax25/ax25.h>
+//#include <netipx/ipx.h>
+//#include <netrom/netrom.h>
+//#include <netrose/rose.h>
+#endif
+#ifdef _GLIBC_
 #include <linux/dccp.h>
 #include <linux/netlink.h>
 #include <linux/icmp.h>
 #include <linux/tipc.h>
 #include <linux/in6.h>
 #include <linux/udp.h>
+#endif
 #endif
 #ifdef PLATFORM_IS_BSD
 #ifdef PLATFORM_IS_FREEBSD

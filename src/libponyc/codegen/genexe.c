@@ -294,6 +294,7 @@ static bool link_exe(compile_t* c, ast_t* program,
   if(c->opt->verbosity >= VERBOSITY_TOOL_INFO)
     fprintf(stderr, "%s\n", ld_cmd);
 
+
   if(system(ld_cmd) != 0)
   {
     errorf(errors, NULL, "unable to link: %s", ld_cmd);
@@ -346,13 +347,13 @@ static bool link_exe(compile_t* c, ast_t* program,
 #else
     "";
 #endif
-  const char* lexecinfo =
-#if (defined(PLATFORM_IS_LINUX) && !defined(__GLIBC__)) || \
+  const char* lexecinfo = "";
+/*#if (defined(PLATFORM_IS_LINUX) && !defined(__GLIBC__)) || \
     defined(PLATFORM_IS_BSD)
    "-lexecinfo";
 #else
     "";
-#endif
+#endif*/
 
   size_t ld_len = 512 + strlen(file_exe) + strlen(file_o) + strlen(lib_args)
                   + strlen(arch) + strlen(mcx16_arg) + strlen(fuseld)
@@ -384,6 +385,8 @@ static bool link_exe(compile_t* c, ast_t* program,
 
   if(c->opt->verbosity >= VERBOSITY_TOOL_INFO)
     fprintf(stderr, "%s\n", ld_cmd);
+
+  fprintf(stderr, "%s\n", ld_cmd);
 
   if(system(ld_cmd) != 0)
   {

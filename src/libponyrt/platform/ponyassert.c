@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #ifdef PLATFORM_IS_POSIX_BASED
+#ifdef _GLIBC_
 #  include <execinfo.h>
+#endif
 #  include <unistd.h>
 #else
 #  include <Windows.h>
@@ -38,6 +40,7 @@ void ponyint_assert_fail(const char* expr, const char* file, size_t line,
   fprintf(stderr, "%s:" __zu ": %s: Assertion `%s` failed.\n\n", file, line,
     func, expr);
 
+#ifdef _GLIBC_
   void* addrs[256];
   stack_depth_t depth = backtrace(addrs, 256);
   char** strings = backtrace_symbols(addrs, depth);
@@ -48,6 +51,7 @@ void ponyint_assert_fail(const char* expr, const char* file, size_t line,
     printf("  %s\n", strings[i]);
 
   free(strings);
+#endif
 
   if(strcmp(PONY_BUILD_CONFIG, "release") == 0)
   {
