@@ -1,100 +1,182 @@
 @echo off
 
-rem This is waf.bat from https://github.com/waf-project/waf/blob/master/utils/waf.bat
+set ROOT_DIR=%~dp0
 
-rem from issue #964
+where cmake > nul
+if errorlevel 1 goto nocmake
 
-Setlocal EnableDelayedExpansion
-
-rem Check Windows Version
-set TOKEN=tokens=3*
-ver | findstr /i "5\.0\." > nul
-if %ERRORLEVEL% EQU 0 SET TOKEN=tokens=3*
-ver | findstr /i "5\.1\." > nul
-if %ERRORLEVEL% EQU 0 SET TOKEN=tokens=3*
-ver | findstr /i "5\.2\." > nul
-if %ERRORLEVEL% EQU 0 SET TOKEN=tokens=3*
-ver | findstr /i "6\.0\." > nul
-if %ERRORLEVEL% EQU 0 SET TOKEN=tokens=2*
-ver | findstr /i "6\.1\." > nul
-if %ERRORLEVEL% EQU 0 SET TOKEN=tokens=2*
-
-rem Start calculating PYTHON and PYTHON_DIR
-set PYTHON=
-set PYTHON_DIR=
-
-Setlocal EnableDelayedExpansion
-
-set PYTHON_DIR_OK=FALSE
-set REGPATH=
-
-for %%i in (3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 3.1 3.0 2.7 2.6 2.5) do (
-for %%j in (HKCU HKLM) do (
-for %%k in (SOFTWARE\Wow6432Node SOFTWARE) do (
-for %%l in (Python\PythonCore IronPython) do (
-set REG_PYTHON_EXE=python.exe
-if "%%l"=="IronPython" (
-set REG_PYTHON_EXE=ipy.exe
+set GOTOLIBS=false
+if "%1"=="libs" (
+  set GOTOLIBS=true
+  shift
 )
 
-@echo on
-
-set REGPATH=%%j\%%k\%%l\%%i\InstallPath
-rem @echo Regpath !REGPATH!
-REG QUERY "!REGPATH!" /ve 1>nul 2>nul
-if !ERRORLEVEL! equ 0 (
-  for /F "%TOKEN% delims=	 " %%A IN ('REG QUERY "!REGPATH!" /ve') do @set REG_PYTHON_DIR=%%B
-  if exist !REG_PYTHON_DIR!  (
-    IF NOT "!REG_PYTHON_DIR:~-1!"=="\" SET REG_PYTHON_DIR=!REG_PYTHON_DIR!\
-    set REG_PYTHON=!REG_PYTHON_DIR!!REG_PYTHON_EXE!
-    rem set PYTHON_DIR_OK=TRUE
-    if "!PYTHON_DIR_OK!"=="FALSE" (
-      set PYTHON_DIR=!REG_PYTHON_DIR!
-      set PYTHON=!REG_PYTHON!
-      set PYTHON_DIR_OK=TRUE
-    )
-
-    rem set PYTHON_DIR_OK=FALSE
-    rem @echo Find !REG_PYTHON!
-    rem goto finished
-  )
+set GOTOCONFIG=false
+if "%1"=="config" (
+  set GOTOCONFIG=true
+  shift
 )
 
-echo off
-
-)
-rem for l
-)
-rem for k
-)
-rem for j
-)
-rem for i
-
-
-
-:finished
-
-Endlocal & SET PYTHON_DIR=%PYTHON_DIR% & SET PYTHON=%PYTHON%
-
-if "%PYTHON_DIR%" == "" (
-rem @echo No Python dir
-set PYTHON=python
-goto running
+set GOTOCLEAN=false
+if "%1"=="clean" (
+  set GOTOCLEAN=true
+  shift
 )
 
-rem @echo %PYTHON_DIR%
-
-if "%PYTHON%" == "" (
-rem @echo No Python
-set PYTHON=python
-goto running
+set GOTOCLEANLIBS=false
+if "%1"=="cleanlibs" (
+  set GOTOCLEANLIBS=true
+  shift
 )
 
-:running
+set GOTODISTCLEAN=false
+if "%1"=="distclean" (
+  set GOTODISTCLEAN=true
+  shift
+)
 
-rem @echo Using %PYTHON%
+set GOTOTEST=false
+if "%1"=="test" (
+  set GOTOTEST=true
+  shift
+)
 
-"%PYTHON%" -x "%~dp0waf" %*
-Endlocal
-%COMSPEC% /c exit /b %ERRORLEVEL%
+set GOTODOCS=false
+if "%1"=="docs" (
+  set GOTODOCS=true
+  shift
+)
+
+set CONFIG=Release
+if "%1"=="config" (
+  set CONFIG=%2
+  shift
+  shift
+)
+
+set LIBS_CONFIG=Release
+if "%1"=="libs_config" (
+  set LIBS_CONFIG=%2
+  shift
+  shift
+)
+
+set CMAKE_GEN=
+if "%1"=="gen" (
+  set CMAKE_GEN="-G %2"
+  shift
+  shift
+)
+
+set CMAKE_INSTALL_PREFIX=
+if "%1"=="cmake_install_prefix" (
+  set CMAKE_INSTALL_PREFIX="-DCMAKE_INSTALL_PREFIX=%1"
+  shift
+  shift
+)
+
+set BUILD_DIR=%ROOT_DIR%build\%CONFIG%
+echo BUILD_DIR=%BUILD_DIR%
+set LIBS_DIR=%ROOT_DIR%build\libs\%CONFIG%
+echo LIBS_DIR=%LIBS_DIR%
+
+if "%GOTOCLEAN%"=="true" goto clean
+if "%GOTOCLEANLIBS%"=="true" goto cleanlibs
+if "%GOTODISTCLEAN%"=="true" goto distclean
+if "%GOTOLIBS%"=="true" goto libs
+
+if not exist "%LIBS_DIR%" (
+  echo Cannot find "%LIBS_DIR%", you may need to run ".\make.bat libs --config=%CONFIG%"
+  goto error
+)
+
+if "%GOTOCONFIG%"=="true" goto config
+if "%GOTOTEST%"=="true" goto test
+if "%GOTODOCS%"=="true" goto docs
+
+:build
+echo make.bat build --config=%CONFIG%
+if not exist "%BUILD_DIR%" (
+  echo mkdir "%BUILD_DIR%"
+  mkdir "%BUILD_DIR%"
+  if errorlevel 1 goto error
+)
+echo pushd %BUILD_DIR%
+pushd %BUILD_DIR%
+echo cmake --build %BUILD_DIR% --target ALL_BUILD --config %CONFIG%
+cmake --build %BUILD_DIR% --target ALL_BUILD --config %CONFIG%
+if errorlevel 1 goto error
+goto done
+
+:config
+echo make.bat config --config=%CONFIG%
+if not exist "%BUILD_DIR%" (
+  echo mkdir "%BUILD_DIR%"
+  mkdir "%BUILD_DIR%"
+  if errorlevel 1 goto error
+)
+echo pushd "%BUILD_DIR%"
+pushd "%BUILD_DIR%"
+if errorlevel 1 goto error
+echo cmake %ROOT_DIR% %CMAKE_GEN% %CMAKE_INSTALL_PREFIX% -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64
+cmake %ROOT_DIR% %CMAKE_GEN% %CMAKE_INSTALL_PREFIX% -DCMAKE_BUILD_TYPE=%CONFIG% -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64
+goto done
+
+:clean
+echo make.bat clean --config=%CONFIG%
+pushd "%ROOT_DIR%"
+if exist "%BUILD_DIR%" (
+  echo rmdir /s /q "%BUILD_DIR%"
+  rmdir /s /q "%BUILD_DIR%"
+  if errorlevel 1 goto error
+)
+goto done
+
+:cleanlibs
+echo make.bat clean --config=%CONFIG%
+pushd "%ROOT_DIR%"
+if exist "%LIBS_DIR%" (
+  echo rmdir /s /q "%LIBS_DIR%"
+  rmdir /s /q "%LIBS_DIR%"
+  if errorlevel 1 goto error
+)
+goto done
+
+:distclean
+echo make.bat distclean --config=%CONFIG%
+pushd "%ROOT_DIR%"
+goto done
+
+:test
+echo make.bat test --config=%CONFIG%
+goto done
+
+:docs
+echo make.bat docs --config=%CONFIG%
+goto done
+
+:libs
+echo make.bat libs --config=%LIBS_CONFIG% %CMAKE_GEN%
+if not exist "%LIBS_DIR%\build" mkdir "%LIBS_DIR%\build"
+if errorlevel 1 goto error
+echo pushd "%LIBS_DIR%\build"
+pushd "%LIBS_DIR%\build"
+echo cmake "%ROOT_DIR%lib" %CMAKE_GEN% -DCMAKE_INSTALL_PREFIX="%LIBS_DIR%" -DCMAKE_BUILD_TYPE=%LIBS_CONFIG% -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64
+cmake "%ROOT_DIR%lib" %CMAKE_GEN% -DCMAKE_INSTALL_PREFIX="%LIBS_DIR%" -DCMAKE_BUILD_TYPE=%LIBS_CONFIG% -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64
+if errorlevel 1 goto error
+echo cmake --build "%LIBS_DIR%\build" --target install --config %LIBS_CONFIG%
+cmake --build "%LIBS_DIR%\build" --target install --config %LIBS_CONFIG%
+if errorlevel 1 goto error
+goto done
+
+:nocmake
+echo You must have CMake.exe in your PATH.
+goto error
+
+:error
+popd
+echo Error detected; exiting!
+%COMSPEC% /c exit 1
+
+:done
+popd
