@@ -12,7 +12,7 @@ if "%1"=="libs" (
 )
 
 set GOTOCONFIG=false
-if "%1"=="config" (
+if "%1"=="configure" (
   set GOTOCONFIG=true
   shift
 )

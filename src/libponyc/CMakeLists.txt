@@ -1,9 +1,5 @@
 project(libponyc VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
-find_package(LLVM REQUIRED PATHS "../../build/libs/${CMAKE_BUILD_TYPE}/lib/cmake/llvm")
-
 add_library(libponyc STATIC
     ponyc.c
     ast/ast.c
@@ -100,27 +96,6 @@ add_library(libponyc STATIC
     verify/type.c
 )
 
-target_include_directories(libponyc
-    PUBLIC ../common
-    PRIVATE ${LLVM_BINARY_DIR}/include
-    PRIVATE ${LLVM_SOURCE_DIR}/include
-    PRIVATE ../../lib/blake2
-  )
-
-llvm_config(libponyc core executionengine orcjit support x86codegen x86info x86desc)
-
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(PONY_LLVM_BUILD_MODE "1")
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(PONY_LLVM_BUILD_MODE "2")
-elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-    set(PONY_LLVM_BUILD_MODE "3")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(PONY_LLVM_BUILD_MODE "4")
-else()
-    set(PONY_LLVM_BUILD_MODE "?")
-endif()
-
 target_compile_definitions(libponyc
     PUBLIC LLVM_BUILD_MODE=${PONY_LLVM_BUILD_MODE}
     PUBLIC LLVM_VERSION="${LLVM_VERSION}"
@@ -131,20 +106,27 @@ target_compile_definitions(libponyc
     PUBLIC PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [${CMAKE_BUILD_TYPE}]\\ncompiled with: llvm ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}"
 )
 
+target_include_directories(libponyc
+    PUBLIC ../common
+    PRIVATE ${LLVM_BINARY_DIR}/include
+    PRIVATE ${LLVM_SOURCE_DIR}/include
+    PRIVATE ../../lib/blake2
+)
+
+llvm_config(libponyc core executionengine orcjit support x86codegen x86info x86desc)
+
 if (MSVC)
     target_compile_definitions(libponyc
         PUBLIC "_MBCS"
         PUBLIC "_CRT_SECURE_NO_WARNINGS"
     )
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4142 /wd4996")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4142 /wd4996")
     file(GLOB_RECURSE CFILES "${PROJECT_SOURCE_DIR}/*.c")
     set_source_files_properties(${CFILES} PROPERTIES LANGUAGE CXX)
 endif (MSVC)
 
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+# get_cmake_property(_variableNames VARIABLES)
+# list (SORT _variableNames)
+# foreach (_variableName ${_variableNames})
+#     message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()

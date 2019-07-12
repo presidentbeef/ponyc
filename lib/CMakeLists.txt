@@ -30,6 +30,9 @@ ExternalProject_Add(googletest
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} --no-warn-unused-cli
 )
 
+add_library(blake2 STATIC
+    blake2/blake2b-ref.c)
+
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
 # Update submodules as needed
