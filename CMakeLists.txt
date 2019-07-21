@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
+# Grab the PonyC version number from the "VERSION" source file.
 file(STRINGS "VERSION" VERSION_NUMBER)
 execute_process(
     COMMAND git rev-parse --short HEAD
@@ -10,38 +11,62 @@ execute_process(
 
 project(Pony VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
 
+# Uncomment this to show build commands
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-find_package(LLVM REQUIRED CONFIG HINTS "build/libs/${CMAKE_BUILD_TYPE}/lib/cmake/llvm" NO_DEFAULT_PATH)
-find_package(GTest REQUIRED CONFIG HINTS "build/libs/${CMAKE_BUILD_TYPE}/lib/cmake/GTest" NO_DEFAULT_PATH)
+# We require LLVM, Google Test and Google Benchmark
+find_package(LLVM REQUIRED CONFIG PATHS "build/libs/lib/cmake/llvm" NO_DEFAULT_PATH)
+find_package(GTest REQUIRED CONFIG PATHS "build/libs/lib/cmake/GTest" NO_DEFAULT_PATH)
+find_package(benchmark REQUIRED CONFIG PATHS "build/libs/lib/cmake/benchmark" NO_DEFAULT_PATH)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(PONY_LLVM_BUILD_MODE "1")
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(PONY_LLVM_BUILD_MODE "2")
-elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-    set(PONY_LLVM_BUILD_MODE "3")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(PONY_LLVM_BUILD_MODE "4")
-else()
-    set(PONY_LLVM_BUILD_MODE "?")
-endif()
+# LibPonyC tests assume that our outputs are two directories above the root directory.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/minsizerel)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/relwithdebinfo)
 
+# Libs are now always built in release mode.
+set(PONY_LLVM_BUILD_MODE "1")
+
+# Required definitions.  We use these generators so that the defines are correct for both *nix (where the config applies at configuration time) and Windows (where the config applies at build time).
+add_compile_definitions(
+    LLVM_BUILD_MODE=${PONY_LLVM_BUILD_MODE}
+    LLVM_VERSION="${LLVM_VERSION}"
+    PONY_ALWAYS_ASSERT
+    $<$<CONFIG:Debug>:PONY_BUILD_CONFIG="debug">
+    $<$<CONFIG:Release>:PONY_BUILD_CONFIG="release">
+    $<$<CONFIG:RelWithDebInfo>:PONY_BUILD_CONFIG="release">
+    $<$<CONFIG:MinSizeRel>:PONY_BUILD_CONFIG="release">
+    PONY_USE_BIGINT
+    PONY_VERSION="${VERSION_NUMBER}"
+    $<$<CONFIG:Debug>:PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [debug]\\nCompiled with: LLVM ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}">
+    $<$<CONFIG:Release>:PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [release]\\nCompiled with: LLVM ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}">
+    $<$<CONFIG:RelWithDebInfo>:PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [relwithdebinfo]\\nCompiled with: LLVM ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}">
+    $<$<CONFIG:MinSizeRel>:PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [minsizerel]\\nCompiled with: LLVM ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}">
+)
+
+# Disable some warnings for Windows, and compile Debug builds with the regular CRT.
 if (MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4142 /wd4996")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4142 /wd4996")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    add_compile_options(/wd4142 /wd4996 $<$<CONFIG:Debug>:/MD>)
+    add_compile_definitions(
+        _MBCS
+        _CRT_SECURE_NO_WARNINGS
+        $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>
+    )
 endif (MSVC)
 
 add_subdirectory(src/libponyc)
 add_subdirectory(src/libponyrt)
-# add_subdirectory(src/ponyc)
+add_subdirectory(src/ponyc)
 
-# add_subdirectory(test/libponyc)
+add_subdirectory(test/libponyc)
 add_subdirectory(test/libponyrt)
 
 # add_subdirectory(benchmark/libponyc)
 # add_subdirectory(benchmark/libponyrt)
+
+# get_cmake_property(_variableNames VARIABLES)
+# list (SORT _variableNames)
+# foreach (_variableName ${_variableNames})
+#     message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()

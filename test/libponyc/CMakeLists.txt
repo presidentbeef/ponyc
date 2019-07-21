@@ -1,0 +1,97 @@
+project(libponyc.tests VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+
+add_executable(libponyc.tests
+    annotations.cc
+    array.cc
+    badpony.cc
+    bare.cc
+    buildflagset.cc
+    cap.cc
+    chain.cc
+    codegen.cc
+    codegen_ffi.cc
+    codegen_final.cc
+    codegen_identity.cc
+    codegen_optimisation.cc
+    codegen_trace.cc
+    compiler_serialisation.cc
+    dontcare.cc
+    ffi.cc
+    finalisers.cc
+    flatten.cc
+    id.cc
+    iftype.cc
+    lambda.cc
+    lexer.cc
+    lexint.cc
+    literal_inference.cc
+    literal_limits.cc
+    local_inference.cc
+    matchtype.cc
+    object.cc
+    option_parser.cc
+    paint.cc
+    parse_entity.cc
+    parse_expr.cc
+    program.cc
+    reach.cc
+    recover.cc
+    refer.cc
+    scope.cc
+    signature.cc
+    sugar.cc
+    sugar_expr.cc
+    sugar_traits.cc
+    suggest_alt_name.cc
+    symtab.cc
+    token.cc
+    traits.cc
+    type_check_bind.cc
+    type_check_subtype.cc
+    use.cc
+    util.cc
+    verify.cc
+)
+
+target_include_directories(libponyc.tests
+    PRIVATE ../../src/common
+    PRIVATE ../../src/libponyc
+    PRIVATE ../../build/libs/include
+)
+
+set(PONY_PACKAGES_DIR "${CMAKE_SOURCE_DIR}/packages")
+
+if (MSVC)
+    string(REPLACE "/" "\\\\" PONY_PACKAGES_DIR ${PONY_PACKAGES_DIR})
+endif (MSVC)
+
+target_compile_definitions(libponyc.tests
+    PRIVATE PONY_PACKAGES_DIR="${PONY_PACKAGES_DIR}"
+)
+
+llvm_config(libponyc.tests all)
+
+target_link_directories(libponyc.tests
+    PRIVATE ../../build/libs/lib
+)
+
+target_link_libraries(libponyc.tests
+    PRIVATE libponyc
+    PRIVATE libponyrt
+    PRIVATE blake2
+    PRIVATE GTest::gtest
+)
+
+if (MSVC)
+    target_link_libraries(libponyc.tests
+        PRIVATE dbghelp
+        PRIVATE ucrt
+        PRIVATE Ws2_32
+        PRIVATE Shlwapi
+    )
+
+    get_target_property(TARGET_LIBRARIES libponyc.tests LINK_LIBRARIES)
+    LIST(REMOVE_ITEM TARGET_LIBRARIES LTO)
+    set_property(TARGET libponyc.tests PROPERTY LINK_LIBRARIES ${TARGET_LIBRARIES})
+    set_property(TARGET libponyc.tests PROPERTY LINK_OPTIONS "/WHOLEARCHIVE:libponyrt.lib")
+endif (MSVC)

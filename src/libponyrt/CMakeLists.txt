@@ -1,9 +1,5 @@
 project(libponyrt VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
-find_package(LLVM REQUIRED PATHS "../../build/libs/${CMAKE_BUILD_TYPE}/lib/cmake/llvm")
-
 add_library(libponyrt STATIC
     actor/actor.c
     actor/messageq.c
@@ -49,41 +45,25 @@ add_library(libponyrt STATIC
     sched/start.c
 )
 
-target_compile_definitions(libponyrt
-    PRIVATE LLVM_BUILD_MODE=${PONY_LLVM_BUILD_MODE}
-    PRIVATE LLVM_VERSION="${LLVM_VERSION}"
-    PRIVATE PONY_ALWAYS_ASSERT
-    PRIVATE PONY_BUILD_CONFIG="${CMAKE_BUILD_TYPE}"
-    PRIVATE PONY_USE_BIGINT
-    PRIVATE PONY_VERSION="${VERSION_NUMBER}"
-    PRIVATE PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [${CMAKE_BUILD_TYPE}]\\ncompiled with: llvm ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}"
-)
-
 target_include_directories(libponyrt
     PRIVATE .
     PRIVATE ../common
 )
 
+set(_ll_src "${libponyrt_SOURCE_DIR}/lang/except_try_catch.ll")
+set(_ll_obj "${libponyrt_BINARY_DIR}/libponyrt.dir/except_try_catch.o")
+
 add_custom_command(TARGET libponyrt PRE_LINK
-    COMMAND ${CMAKE_BINARY_DIR}/../libs/${CMAKE_BUILD_TYPE}/bin/llc -filetype=obj -o ${libponyrt_BINARY_DIR}/libponyrt.dir/${CMAKE_BUILD_TYPE}/except_try_catch.o ${libponyrt_SOURCE_DIR}/lang/except_try_catch.ll
+    COMMAND "../../libs/bin/llc" -filetype=obj -o ${_ll_obj} ${_ll_src}
+    WORKING_DIRECTORY ${libponyrt_BINARY_DIR}
+    BYPRODUCTS ${_ll_obj}
 )
 
 target_link_libraries(libponyrt
-    ${libponyrt_BINARY_DIR}/libponyrt.dir/${CMAKE_BUILD_TYPE}/except_try_catch.o
+    PRIVATE ${_ll_obj}
 )
 
 if (MSVC)
-    target_compile_definitions(libponyrt
-        PUBLIC "_MBCS"
-        PUBLIC "_CRT_SECURE_NO_WARNINGS"
-    )
-
     file(GLOB_RECURSE CFILES "${PROJECT_SOURCE_DIR}/*.c")
     set_source_files_properties(${CFILES} PROPERTIES LANGUAGE CXX)
 endif (MSVC)
-
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-#     message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()

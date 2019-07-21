@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 file(STRINGS "../VERSION" VERSION_NUMBER)
 
@@ -11,7 +11,7 @@ if(NOT DEFINED PONYC_LIBS_BUILD_TYPE)
 endif()
 
 ExternalProject_Add(pcre
-    URL https://ftp.pcre.org/pub/pcre/pcre-8.43.zip
+    URL https://ftp.pcre.org/pub/pcre/pcre2-10.33.zip
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
@@ -27,11 +27,12 @@ ExternalProject_Add(gbenchmark
 
 ExternalProject_Add(googletest
     URL https://github.com/google/googletest/archive/release-1.8.1.zip
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} --no-warn-unused-cli
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -Dgtest_force_shared_crt=ON --no-warn-unused-cli
 )
 
 add_library(blake2 STATIC
     blake2/blake2b-ref.c)
+install(TARGETS blake2)
 
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")

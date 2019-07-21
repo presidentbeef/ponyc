@@ -96,37 +96,13 @@ add_library(libponyc STATIC
     verify/type.c
 )
 
-target_compile_definitions(libponyc
-    PUBLIC LLVM_BUILD_MODE=${PONY_LLVM_BUILD_MODE}
-    PUBLIC LLVM_VERSION="${LLVM_VERSION}"
-    PUBLIC PONY_ALWAYS_ASSERT
-    PUBLIC PONY_BUILD_CONFIG="${CMAKE_BUILD_TYPE}"
-    PUBLIC PONY_USE_BIGINT
-    PUBLIC PONY_VERSION="${VERSION_NUMBER}"
-    PUBLIC PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [${CMAKE_BUILD_TYPE}]\\ncompiled with: llvm ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}"
-)
-
 target_include_directories(libponyc
     PUBLIC ../common
-    PRIVATE ${LLVM_BINARY_DIR}/include
-    PRIVATE ${LLVM_SOURCE_DIR}/include
+    PRIVATE ../../build/libs/include
     PRIVATE ../../lib/blake2
 )
 
-llvm_config(libponyc core executionengine orcjit support x86codegen x86info x86desc)
-
 if (MSVC)
-    target_compile_definitions(libponyc
-        PUBLIC "_MBCS"
-        PUBLIC "_CRT_SECURE_NO_WARNINGS"
-    )
-
     file(GLOB_RECURSE CFILES "${PROJECT_SOURCE_DIR}/*.c")
     set_source_files_properties(${CFILES} PROPERTIES LANGUAGE CXX)
 endif (MSVC)
-
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-#     message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
