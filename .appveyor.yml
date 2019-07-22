@@ -41,6 +41,7 @@ build_script:
       cd C:\projects\ponyc
       if (!(Test-Path "C:\projects\ponyc\build\libs\bin\llc.exe"))
       {
+        & git submodule update --init --recursive
         & C:\projects\ponyc\make.ps1 libs
       }
       $package_commit = git rev-parse --short --verify "HEAD^{commit}"

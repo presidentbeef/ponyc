@@ -70,12 +70,12 @@ switch ($Command.ToLower())
         Write-Output "Configuring libraries..."
         Write-Output "cmake.exe -B `"$libsBuildDir`" -S `"$libsSrcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$libsDir`" -DCMAKE_BUILD_TYPE=Release"
         & cmake.exe -B "$libsBuildDir" -S "$libsSrcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX="$libsDir" -DCMAKE_BUILD_TYPE=Release
-        if ($LastExitCode -ne 0) { throw "Error!" }
+        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
 
         Write-Output "Building libraries..."
         Write-Output "cmake.exe --build `"$libsBuildDir`" --target install --config Release"
         & cmake.exe --build "$libsBuildDir" --target install --config Release
-        if ($LastExitCode -ne 0) { throw "Error!" }
+        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
         break
     }
     "cleanlibs"
@@ -91,14 +91,14 @@ switch ($Command.ToLower())
     {
         Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE=`"$Config`""
         & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE="$Config"
-        if ($LastExitCode -ne 0) { throw "Error!" }
+        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
         break
     }
     "build"
     {
         Write-Output "cmake.exe --build `"$buildDir`" --config $Config --target ALL_BUILD"
         & cmake.exe --build "$buildDir" --config $Config --target ALL_BUILD
-        if ($LastExitCode -ne 0) { throw "Error!" }
+        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
         break
     }
     "clean"
