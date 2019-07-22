@@ -70,12 +70,12 @@ switch ($Command.ToLower())
         Write-Output "Configuring libraries..."
         Write-Output "cmake.exe -B `"$libsBuildDir`" -S `"$libsSrcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$libsDir`" -DCMAKE_BUILD_TYPE=Release"
         & cmake.exe -B "$libsBuildDir" -S "$libsSrcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX="$libsDir" -DCMAKE_BUILD_TYPE=Release
-        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
+        if (!$?) { throw "Error: exit code $LastExitCode" }
 
         Write-Output "Building libraries..."
         Write-Output "cmake.exe --build `"$libsBuildDir`" --target install --config Release"
         & cmake.exe --build "$libsBuildDir" --target install --config Release
-        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
+        if (!$?) { throw "Error: exit code $LastExitCode" }
         break
     }
     "cleanlibs"
@@ -91,14 +91,14 @@ switch ($Command.ToLower())
     {
         Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE=`"$Config`""
         & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE="$Config"
-        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
+        if (!$?) { throw "Error: exit code $LastExitCode" }
         break
     }
     "build"
     {
         Write-Output "cmake.exe --build `"$buildDir`" --config $Config --target ALL_BUILD"
         & cmake.exe --build "$buildDir" --config $Config --target ALL_BUILD
-        if ($LastExitCode -ne 0) { throw "Error: exit code $LastExitCode" }
+        if (!$?) { throw "Error: exit code $LastExitCode" }
         break
     }
     "clean"
@@ -127,13 +127,13 @@ switch ($Command.ToLower())
         $numTestSuitesRun += 1;
         Write-Output "$outDir\libponyrt.tests.exe --gtest_shuffle"
         & $outDir\libponyrt.tests.exe --gtest_shuffle
-        if ($LastExitCode -ne 0) { $failedTestSuites += 'libponyrt.tests' }
+        if (!$?) { $failedTestSuites += 'libponyrt.tests' }
 
         # libponyc.tests
         $numTestSuitesRun += 1;
         Write-Output "$outDir\libponyc.tests.exe --gtest_shuffle"
         & $outDir\libponyc.tests.exe --gtest_shuffle
-        if ($LastExitCode -ne 0) { $failedTestSuites += 'libponyc.tests' }
+        if (!$?) { $failedTestSuites += 'libponyc.tests' }
 
         # stdlib-debug
         $numTestSuitesRun += 1;
@@ -143,7 +143,7 @@ switch ($Command.ToLower())
         {
             Write-Output "$outDir\stdlib-debug.exe"
             & $outDir\stdlib-debug.exe
-            if ($LastExitCode -ne 0) { $failedTestSuites += 'stdlib-debug' }
+            if (!$?) { $failedTestSuites += 'stdlib-debug' }
         }
         else
         {
@@ -158,7 +158,7 @@ switch ($Command.ToLower())
         {
             Write-Output "$outDir\stdlib-release.exe"
             & $outDir\stdlib-release.exe
-            if ($LastExitCode -ne 0) { $failedTestSuites += 'stdlib-release' }
+            if (!$?) { $failedTestSuites += 'stdlib-release' }
         }
         else
         {
