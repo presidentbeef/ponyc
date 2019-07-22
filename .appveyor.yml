@@ -39,7 +39,7 @@ build_script:
   - ps: |
       $ErrorActionPreference = "Stop"
       cd C:\projects\ponyc
-      if (!(Test-Path "C:\projects\ponyc\build\libs"))
+      if (!(Test-Path "C:\projects\ponyc\build\libs\bin\llc.exe"))
       {
         & C:\projects\ponyc\make.ps1 libs
       }

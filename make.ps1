@@ -5,7 +5,11 @@
 
     [Parameter(HelpMessage="The build configuration (Release, Debug, RelWithDebInfo, MinSizeRel).")]
     [string]
-    $Config = "Release"
+    $Config = "Release",
+
+    [Parameter(HelpMessage="The CMake generator, e.g. `"Visual Studio 16 2019`"")]
+    [string]
+    $Generator = "default"
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,7 +25,16 @@ switch ($Config.ToLower())
     default { throw "'$Config' is not a valid config; use Release, Debug, RelWithDebInfo, or MinSizeRel)." }
 }
 
-Write-Output "make.ps1 $Command -Config $Config"
+if ($Generator -eq "default")
+{
+    try
+    {
+        $Generator = cmake --help | Where-Object { $_ -match '\* (.*) (\[arch\])? =' } | Foreach-Object { $Matches[1] }
+    }
+    catch { }
+}
+
+Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`""
 
 $srcDir = Split-Path $script:MyInvocation.MyCommand.Path
 $buildDir = Join-Path -Path $srcDir -ChildPath "build"
@@ -33,7 +46,7 @@ $outDir = Join-Path -Path $buildDir -ChildPath $Config
 # Write-Output "Libs directory:   $libsDir"
 # Write-Output "Output directory: $outDir"
 
-if (($Command.ToLower() -ne "libs") -and !(Test-Path -Path $libsDir))
+if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -and !(Test-Path -Path $libsDir))
 {
     throw "Libs directory '$libsDir' does not exist; you may need to run 'make.ps1 libs' first."
 }
@@ -44,24 +57,24 @@ switch ($Command.ToLower())
     {
         if (!(Test-Path -Path $libsDir))
         {
-            New-Item -ItemType "directory" -Path $libsDir
+            New-Item -ItemType "directory" -Path $libsDir | Out-Null
         }
 
         $libsBuildDir = Join-Path -Path $buildDir -ChildPath "libsbuild"
         if (!(Test-Path -Path $libsBuildDir))
         {
-            New-Item -ItemType "directory" -Path $libsBuildDir
+            New-Item -ItemType "directory" -Path $libsBuildDir | Out-Null
         }
 
         $libsSrcDir = Join-Path -Path $srcDir -ChildPath "lib"
         Write-Output "Configuring libraries..."
-        Write-Output "cmake.exe -B $libsBuildDir -S $libsSrcDir -DCMAKE_INSTALL_PREFIX=$libsDir -DCMAKE_BUILD_TYPE=Release -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64"
-        & cmake.exe -B $libsBuildDir -S $libsSrcDir -DCMAKE_INSTALL_PREFIX="$libsDir" -DCMAKE_BUILD_TYPE=Release -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64
+        Write-Output "cmake.exe -B `"$libsBuildDir`" -S `"$libsSrcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$libsDir`" -DCMAKE_BUILD_TYPE=Release"
+        & cmake.exe -B "$libsBuildDir" -S "$libsSrcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX="$libsDir" -DCMAKE_BUILD_TYPE=Release
         if ($LastExitCode -ne 0) { throw "Error!" }
 
         Write-Output "Building libraries..."
-        Write-Output "cmake.exe --build $libsBuildDir --target install --config Release"
-        & cmake.exe --build $libsBuildDir --target install --config Release
+        Write-Output "cmake.exe --build `"$libsBuildDir`" --target install --config Release"
+        & cmake.exe --build "$libsBuildDir" --target install --config Release
         if ($LastExitCode -ne 0) { throw "Error!" }
         break
     }
@@ -76,15 +89,15 @@ switch ($Command.ToLower())
     }
     "configure"
     {
-        Write-Output "cmake.exe -B $buildDir -S $srcDir -DCMAKE_BUILD_TYPE=$Config -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64"
-        & cmake.exe -B $buildDir -S $srcDir -DCMAKE_BUILD_TYPE="$Config" -DCMAKE_GENERATOR_PLATFORM=x64 -Thost=x64
+        Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE=`"$Config`""
+        & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE="$Config"
         if ($LastExitCode -ne 0) { throw "Error!" }
         break
     }
     "build"
     {
-        Write-Output "cmake.exe --build $buildDir --config $Config --target ALL_BUILD"
-        & cmake.exe --build $buildDir --config $Config --target ALL_BUILD
+        Write-Output "cmake.exe --build `"$buildDir`" --config $Config --target ALL_BUILD"
+        & cmake.exe --build "$buildDir" --config $Config --target ALL_BUILD
         if ($LastExitCode -ne 0) { throw "Error!" }
         break
     }
@@ -96,8 +109,11 @@ switch ($Command.ToLower())
     }
     "distclean"
     {
-        Write-Output "Remove-Item -Path $buildDir -Recurse"
-        Remove-Item -Path $buildDir -Recurse
+        if (Test-Path $buildDir)
+        {
+            Write-Output "Remove-Item -Path $buildDir -Recurse"
+            Remove-Item -Path $buildDir -Recurse
+        }
         break
     }
     "test"
