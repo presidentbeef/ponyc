@@ -47,7 +47,7 @@ switch ($Command.ToLower())
             New-Item -ItemType "directory" -Path $libsDir
         }
 
-        $libsBuildDir = Join-Path -Path $libsDir -ChildPath "build"
+        $libsBuildDir = Join-Path -Path $buildDir -ChildPath "libsbuild"
         if (!(Test-Path -Path $libsBuildDir))
         {
             New-Item -ItemType "directory" -Path $libsBuildDir

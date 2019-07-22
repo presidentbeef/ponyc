@@ -1,15 +1,11 @@
 version: "{build}"
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 branches:
   only:
     - master
     - release
-
-environment:
-  matrix:
-  - llvm: 7.0.1
 
 configuration:
   - release
@@ -39,35 +35,39 @@ skip_commits:
 
 clone_folder: C:\projects\ponyc
 
+cache:
+  - C:\projects\ponyc\build\libs -> C:\projects\ponyc\lib\CMakeFiles.txt
+
 build_script:
-  - ps: |
-      $package_commit = git rev-parse --short --verify "HEAD^{commit}"
-      $package_version = (Get-Content "VERSION")
-      $package_iteration = "$package_iteration${env:appveyor_build_number}.$package_commit"
-      Update-AppveyorBuild -Version "ponyc-$package_version-$package_iteration"
-  - cd C:\projects\ponyc
-  - python -x waf configure
-  - python -x waf clean --config %configuration% --llvm %llvm%
-  - python -x waf build --config %configuration% --llvm %llvm%
-  - ps: |
-      $ponydir = "ponyc-${package_version}-win64"
-      cd C:\projects\ponyc
-      md "$ponydir"
-      md "${ponydir}\ponyc"
-      md "${ponydir}\ponyc\bin"
-      $builddir = "C:\projects\ponyc\build\${env:configuration}-llvm-${env:llvm}"
-      Write-Output "Build dir is ${builddir}"
-      copy $builddir\ponyc.* "${ponydir}\ponyc\bin"
-      copy $builddir\ponyrt.* "${ponydir}\ponyc\bin"
-      copy $builddir\*.lib "${ponydir}\ponyc\bin"
-      copy -recurse packages "${ponydir}\packages"
-      7z a -tzip "C:\projects\ponyc\${ponydir}.zip" "${ponydir}"
+  -ps: |
+    $ErrorActionPreference = "Stop"
+    cd C:\projects\ponyc
+    if (!(Test-Path "C:\projects\ponyc\build\libs"))
+    {
+      & C:\projects\ponyc\make.ps1 libs
+    }
+    $package_commit = git rev-parse --short --verify "HEAD^{commit}"
+    $package_version = (Get-Content "VERSION")
+    $package_iteration = "$package_iteration${env:appveyor_build_number}.$package_commit"
+    Update-AppveyorBuild -Version "ponyc-$package_version-$package_iteration"
+    & C:\projects\ponyc\make.ps1 build -Config $env:configuration
+    $ponydir = "ponyc-${package_version}-win64-$env:configuration"
+    md "$ponydir"
+    md "${ponydir}\ponyc"
+    md "${ponydir}\ponyc\bin"
+    $builddir = "C:\projects\ponyc\build\${env:configuration}"
+    copy $builddir\ponyc.* "${ponydir}\ponyc\bin"
+    copy $builddir\libponyc.* "${ponydir}\ponyc\bin"
+    copy $builddir\libponyrt.* "${ponydir}\ponyc\bin"
+    copy $builddir\*.lib "${ponydir}\ponyc\bin"
+    copy -Recurse packages "${ponydir}\packages"
+    7z a -tzip "C:\projects\ponyc\${ponydir}.zip" "${ponydir}"
 
 artifacts:
   - path: 'ponyc-*.zip'
 
 deploy:
-  # On branche `release`, deploy (and publish) artifacts
+  # On branch `release`, deploy (and publish) artifacts
   # to the ponyc-win projects on Bintray.
   - provider: BinTray
     username: pony-buildbot-2
@@ -78,10 +78,10 @@ deploy:
     package: ponyc
     on:
         branch: release
-        llvm: 7.0.1
         configuration: release
     publish: true
 
 test_script:
-  - cd C:\projects\ponyc
-  - python -x waf test examples --config %configuration% --llvm %llvm%
+  -ps: |
+    cd C:\projects\ponyc
+    & C:\projects\ponyc\make.ps1 test -Config $env:configuration
