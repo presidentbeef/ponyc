@@ -62,8 +62,8 @@ add_subdirectory(src/ponyc)
 add_subdirectory(test/libponyc)
 add_subdirectory(test/libponyrt)
 
-# add_subdirectory(benchmark/libponyc)
-# add_subdirectory(benchmark/libponyrt)
+add_subdirectory(benchmark/libponyc)
+add_subdirectory(benchmark/libponyrt)
 
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
