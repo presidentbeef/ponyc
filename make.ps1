@@ -29,7 +29,7 @@ if ($Generator -eq "default")
 {
     try
     {
-        $Generator = cmake --help | Where-Object { $_ -match '(Visual Studio 16 2019)' -or $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() }
+        $Generator = cmake --help | Where-Object { $_ -match '(Visual Studio 16 2019)' -or $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First
     }
     catch { }
 }
