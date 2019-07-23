@@ -36,7 +36,7 @@ skip_commits:
 clone_folder: C:\projects\ponyc
 
 build_script:
-  - ps: .appveyor\build.ps1
+  - ps: C:\projects\ponyc\.appveyor\build.ps1
 
 cache:
   - C:\projects\ponyc\build\libs -> C:\projects\ponyc\lib\CMakeFiles.txt
@@ -60,4 +60,4 @@ deploy:
     publish: true
 
 test_script:
-  - ps: .appveyor\test.ps1
+  - ps: C:\projects\ponyc\.appveyor\test.ps1
