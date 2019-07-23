@@ -77,26 +77,7 @@ task:
   name: "win64-release"
 
   windows_container:
-    image: cirrusci/windowsservercore:2019
-    os_version: 2019
-
-  env:
-    CIRRUS_SHELL: powershell
-
-  libs_cache:
-    folder: build/libs
-    fingerprint_script: (Get-FileHash -Path lib\CMakeLists.txt).Hash
-    populate_script: .\make.ps1 libs
-
-  build_script: .\make.ps1 build -Config Release
-
-  test_script: .\make.ps1 test -Config Release
-
-task:
-  name: "win64-debug"
-
-  windows_container:
-    image: cirrusci/windowsservercore:2019
+    dockerfile: .ci-dockerfiles/windowsservercore/Dockerfile
     os_version: 2019
 
   libs_cache:
@@ -104,6 +85,5 @@ task:
     fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
     populate_script: powershell.exe -File .\make.ps1 libs
 
-  build_script: powershell.exe -File .\make.ps1 build -Config Debug
-
-  test_script: powershell.exe -File .\make.ps1 test -Config Debug
+  build_script: powershell.exe -File .\make.ps1 build -Config Release
+  test_script: powershell.exe -File .\make.ps1 test -Config Release
