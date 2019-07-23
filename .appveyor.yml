@@ -36,43 +36,7 @@ skip_commits:
 clone_folder: C:\projects\ponyc
 
 build_script:
-  - ps: |
-      cd C:\projects\ponyc
-      if (!(Test-Path "C:\projects\ponyc\build\libs\bin\llc.exe"))
-      {
-        & git submodule update --init --recursive
-        if (!$?) { throw "Error code $LastErrorCode" }
-        & C:\projects\ponyc\make.ps1 libs
-        if (!$?) { throw "Error code $LastErrorCode" }
-      }
-      $package_commit = git rev-parse --short --verify "HEAD^{commit}"
-      $package_version = (Get-Content "VERSION")
-      $package_iteration = "$package_iteration${env:appveyor_build_number}.$package_commit"
-      Update-AppveyorBuild -Version "ponyc-$package_version-$package_iteration"
-      & C:\projects\ponyc\make.ps1 configure -Config $eng:configuration
-      if (!$?) { throw "Error code $LastErrorCode" }
-      & C:\projects\ponyc\make.ps1 build -Config $env:configuration
-      if (!$?) { throw "Error code $LastErrorCode" }
-      $ponydir = "ponyc-${package_version}-win64-$env:configuration"
-      md "$ponydir"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      md "${ponydir}\ponyc"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      md "${ponydir}\ponyc\bin"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      $builddir = "C:\projects\ponyc\build\${env:configuration}"
-      copy $builddir\ponyc.* "${ponydir}\ponyc\bin"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      copy $builddir\libponyc.* "${ponydir}\ponyc\bin"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      copy $builddir\libponyrt.* "${ponydir}\ponyc\bin"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      copy $builddir\*.lib "${ponydir}\ponyc\bin"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      copy -Recurse packages "${ponydir}\packages"
-      if (!$?) { throw "Error code $LastErrorCode" }
-      7z a -tzip "C:\projects\ponyc\${ponydir}.zip" "${ponydir}"
-      if (!$?) { throw "Error code $LastErrorCode" }
+  - ps: .appveyor\build.ps1
 
 cache:
   - C:\projects\ponyc\build\libs -> C:\projects\ponyc\lib\CMakeFiles.txt
@@ -96,7 +60,4 @@ deploy:
     publish: true
 
 test_script:
-  - ps: |
-      cd C:\projects\ponyc
-      & C:\projects\ponyc\make.ps1 test -Config $env:configuration
-      if (!$?) { throw "Error code $LastErrorCode" }
+  - ps: .appveyor\test.ps1
