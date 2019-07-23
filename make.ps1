@@ -27,11 +27,7 @@ switch ($Config.ToLower())
 
 if ($Generator -eq "default")
 {
-    try
-    {
-        $Generator = cmake --help | Where-Object { $_ -match '(Visual Studio 16 2019)' -or $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First
-    }
-    catch { }
+    $Generator = cmake --help | Where-Object { $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First 1
 }
 
 Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`""
@@ -53,6 +49,7 @@ if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -a
 
 switch ($Command.ToLower())
 {
+    "dummy" { break }
     "libs"
     {
         if (!(Test-Path -Path $libsDir))
@@ -193,6 +190,8 @@ switch ($Command.ToLower())
             Write-Output "Test suites failed: ($failedTestSuitesList)"
             exit $numTestSuitesFailed
         }
+
+        break
     }
     default
     {
