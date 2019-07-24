@@ -87,5 +87,6 @@ task:
     fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
     populate_script: powershell.exe -File .\make.ps1 libs -Generator "Visual Studio 16 2019"
 
+  config_script: powershell.exe -File .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019"
   build_script: powershell.exe -File .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019"
   test_script: powershell.exe -File .\make.ps1 test -Config Release -Generator "Visual Studio 16 2019"
