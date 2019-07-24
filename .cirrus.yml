@@ -89,4 +89,5 @@ task:
 
   config_script: powershell.exe -File .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019"
   build_script: powershell.exe -File .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019"
+  firewall_script: netsh advfirewall set currentprofile state off
   test_script: powershell.exe -File .\make.ps1 test -Config Release -Generator "Visual Studio 16 2019"

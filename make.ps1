@@ -164,11 +164,11 @@ switch ($Command.ToLower())
 
         # grammar
         $numTestSuitesRun += 1
-        Write-Output "$outDir\ponyc.exe --antlr > $outDir\pony.g.test"
-        & $outDir\ponyc.exe --antlr | Out-File -Encoding ASCII "$outDir\pony.g.test"
+        Get-Content -Path "$srcDir\pony.g" -Encoding ASCII | Out-File -Encoding UTF8 "$outDir\pony.g.orig"
+        & $outDir\ponyc.exe --antlr | Out-File -Encoding UTF8 "$outDir\pony.g.test"
         if ($LastExitCode -eq 0)
         {
-            $origHash = (Get-FileHash -Path "$srcDir\pony.g").Hash
+            $origHash = (Get-FileHash -Path "$outDir\pony.g.orig").Hash
             $testHash = (Get-FileHash -Path "$outDir\pony.g.test").Hash
 
             Write-Output "grammar original hash:  $origHash"
