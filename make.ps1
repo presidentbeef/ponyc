@@ -139,7 +139,7 @@ switch ($Command.ToLower())
         if ($LastExitCode -eq 0)
         {
             Write-Output "$outDir\stdlib-debug.exe"
-            & $outDir\stdlib-debug.exe
+            & $outDir\stdlib-debug.exe --exclude="net/Broadcast"
             if (!$?) { $failedTestSuites += 'stdlib-debug' }
         }
         else
@@ -154,7 +154,7 @@ switch ($Command.ToLower())
         if ($LastExitCode -eq 0)
         {
             Write-Output "$outDir\stdlib-release.exe"
-            & $outDir\stdlib-release.exe
+            & $outDir\stdlib-release.exe --exclude="net/Broadcast"
             if (!$?) { $failedTestSuites += 'stdlib-release' }
         }
         else
