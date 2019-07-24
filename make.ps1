@@ -12,9 +12,6 @@
     $Generator = "default"
 )
 
-$ErrorActionPreference = "Stop"
-$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
-
 # Sanitize config to conform to CMake build configs.
 switch ($Config.ToLower())
 {
@@ -87,7 +84,7 @@ switch ($Command.ToLower())
     "configure"
     {
         Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE=`"$Config`""
-        & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE="$Config"
+        & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE="$Config" --no-warn-unused-cli
         if (!$?) { throw "Error: exit code $LastExitCode" }
         break
     }
@@ -100,8 +97,11 @@ switch ($Command.ToLower())
     }
     "clean"
     {
-        Write-Output "Remove-Item -Path $outDir -Recurse"
-        Remove-Item -Path $outDir -Recurse
+        if (Test-Path $outDir)
+        {
+            Write-Output "Remove-Item -Path $outDir -Recurse"
+            Remove-Item -Path "$outDir" -Recurse
+        }
         break
     }
     "distclean"
@@ -109,7 +109,7 @@ switch ($Command.ToLower())
         if (Test-Path $buildDir)
         {
             Write-Output "Remove-Item -Path $buildDir -Recurse"
-            Remove-Item -Path $buildDir -Recurse
+            Remove-Item -Path "$buildDir" -Recurse
         }
         break
     }
@@ -168,10 +168,13 @@ switch ($Command.ToLower())
         & $outDir\ponyc.exe --antlr | Out-File -Encoding ASCII "$outDir\pony.g.test"
         if ($LastExitCode -eq 0)
         {
-            $origHash = Get-FileHash -Path "$srcDir\pony.g"
-            $testHash = Get-FileHash -Path "$outDir\pony.g.test"
+            $origHash = (Get-FileHash -Path "$srcDir\pony.g").Hash
+            $testHash = (Get-FileHash -Path "$outDir\pony.g.test").Hash
 
-            if ($origHash.Hash -ne $testHash.Hash)
+            Write-Output "grammar original hash:  $origHash"
+            Write-Output "grammar generated hash: $testHash"
+
+            if ($origHash -ne $testHash)
             {
                 $failedTestSuites += 'generated grammar file differs from baseline'
             }
