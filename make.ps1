@@ -1,5 +1,5 @@
 ﻿Param(
-    [Parameter(Position=0, Mandatory=$true, HelpMessage="Enter the action to take, e.g. libs, configure, build, clean, cleanlibs.")]
+    [Parameter(Position=0, Mandatory=$true, HelpMessage="Enter the action to take, e.g. libs, cleanlibs, configure, build, clean, distclean, test, install.")]
     [string]
     $Command,
 
@@ -9,7 +9,11 @@
 
     [Parameter(HelpMessage="The CMake generator, e.g. `"Visual Studio 16 2019`"")]
     [string]
-    $Generator = "default"
+    $Generator = "default",
+
+    [Parameter(HelpMessage="The location to install to")]
+    [string]
+    $InstallPath = "default"
 )
 
 # Sanitize config to conform to CMake build configs.
@@ -22,13 +26,6 @@ switch ($Config.ToLower())
     default { throw "'$Config' is not a valid config; use Release, Debug, RelWithDebInfo, or MinSizeRel)." }
 }
 
-if ($Generator -eq "default")
-{
-    $Generator = cmake --help | Where-Object { $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First 1
-}
-
-Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`""
-
 $srcDir = Split-Path $script:MyInvocation.MyCommand.Path
 $buildDir = Join-Path -Path $srcDir -ChildPath "build"
 $libsDir = Join-Path -Path $buildDir -ChildPath "libs"
@@ -38,6 +35,22 @@ $outDir = Join-Path -Path $buildDir -ChildPath $Config
 # Write-Output "Build directory:  $buildDir"
 # Write-Output "Libs directory:   $libsDir"
 # Write-Output "Output directory: $outDir"
+
+if ($Generator -eq "default")
+{
+    $Generator = cmake --help | Where-Object { $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First 1
+}
+
+if ($InstallPath -eq "default")
+{
+    $InstallPath = Join-Path -Path $buildDir -ChildPath "build\install\$Config"
+}
+elseif (![System.IO.Path]::IsPathRooted($InstallPath))
+{
+    $InstallPath = Join-Path -Path $srcDir -ChildPath $InstallPath
+}
+
+Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$InstallPath`""
 
 if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -and !(Test-Path -Path $libsDir))
 {
@@ -83,8 +96,8 @@ switch ($Command.ToLower())
     }
     "configure"
     {
-        Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE=`"$Config`""
-        & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_BUILD_TYPE="$Config" --no-warn-unused-cli
+        Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`""
+        & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A x64 -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" --no-warn-unused-cli
         if (!$?) { throw "Error: exit code $LastExitCode" }
         break
     }
@@ -196,8 +209,20 @@ switch ($Command.ToLower())
 
         break
     }
+    "install"
+    {
+        Write-Output "cmake.exe --build `"$buildDir`" --config $Config --target install"
+        & cmake.exe --build "$buildDir" --config $Config --target install
+        if (!$?) { throw "Error: exit code $LastExitCode" }
+
+        break
+    }
+    "package"
+    {
+
+    }
     default
     {
-        throw "Unknown command $Command; libs, cleanlibs, configure, build, clean, distclean, test"
+        throw "Unknown command '$Command'; use: {libs, cleanlibs, configure, build, clean, distclean, test, install}"
     }
 }

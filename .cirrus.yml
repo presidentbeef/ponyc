@@ -75,6 +75,7 @@
 
 task:
   name: "win64-release"
+  skip: "changesInclude('.bintray.sh', '.gitattributes', '.gitignore', 'LICENSE', 'Makefile*', '**/*.md', '**/*.txt')"
 
   windows_container:
     dockerfile: .ci-dockerfiles/windowsservercore/Dockerfile
@@ -85,8 +86,11 @@ task:
   libs_cache:
     folder: build/libs
     fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
-    populate_script: powershell.exe -File .\make.ps1 libs -Generator "Visual Studio 16 2019"
+    populate_script: powershell.exe -NoLogo -File .\make.ps1 libs -Generator "Visual Studio 16 2019"
 
-  config_script: powershell.exe -File .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019"
-  build_script: powershell.exe -File .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019"
-  test_script: powershell.exe -File .\make.ps1 test -Config Release -Generator "Visual Studio 16 2019"
+  config_script: powershell.exe -NoLogo -File .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+  build_script: powershell.exe -NoLogo -File .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+  test_script: powershell.exe -NoLogo -File .\make.ps1 test -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+  install_script: powershell.exe -NoLogo -File .\make.ps1 install -Config Release -InstallPath "build\install\release"
+  # package_script: powershell.exe -NoLogo -File .\make.ps1 package -Config Release -InstallPath "build\install\release"
+  # upload_script: powershell.exe -NoLogo -Command "& cloudsmith push raw --version ((Get-Date).ToString(""""yyyyMMdd"""")) --api-key 1cc732891a064c6542e3632a6ee281b69dbdce18 main-pony/pony-nightlies ((Get-ChildItem -Filter *.zip -Path build\install\release | Select-Object -First 1).Name)"
