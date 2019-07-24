@@ -80,6 +80,8 @@ task:
     dockerfile: .ci-dockerfiles/windowsservercore/Dockerfile
     os_version: 2019
 
+  timeout_in: 120m
+
   libs_cache:
     folder: build/libs
     fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
