@@ -114,6 +114,9 @@ switch ($Command.ToLower())
     }
     "clean"
     {
+        Write-Output "cmake.exe --build `"buildDir`" --config $Config --target clean"
+        & cmake.exe --build "$buildDir" --config $Config --target clean
+
         if (Test-Path $outDir)
         {
             Write-Output "Remove-Item -Path $outDir -Recurse -Force"
@@ -225,14 +228,14 @@ switch ($Command.ToLower())
     {
         switch ($Version)
         {
-            "default" { $Version = (Get-Content $srcDir\VERSION) }
+            "default" { $Version = (Get-Content $srcDir\VERSION) + "-" + (git rev-parse --short --verify HEAD^) }
             "date" { $Version = (Get-Date).ToString("yyyyMMdd") }
         }
 
         $package = "ponyc-x86_64-pc-windows-msvc-$Version-$Config.zip"
         Write-Output "Creating $buildDir\$package"
 
-        Compress-Archive -Path $InstallPath -DestinationPath "$buildDir\$package" -Force
+        Compress-Archive -Path "$InstallPath\ponyc", "$InstallPath\packages", "$InstallPath\examples" -DestinationPath "$buildDir\$package" -Force
     }
     default
     {

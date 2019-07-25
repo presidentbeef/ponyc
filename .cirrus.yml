@@ -89,7 +89,7 @@ task:
     populate_script: powershell.exe -NoLogo -File .\make.ps1 libs -Generator "Visual Studio 16 2019"
 
   binary_artifacts:
-    path: build\*.zip
+    path: build/*.zip
 
   config_script: powershell.exe -NoLogo -File .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
   build_script: powershell.exe -NoLogo -File .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
