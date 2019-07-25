@@ -66,7 +66,8 @@ add_subdirectory(benchmark/libponyc)
 add_subdirectory(benchmark/libponyrt)
 
 install(TARGETS ponyc libponyrt)
-install(DIRECTORY packages DESTINATION packages)
+install(DIRECTORY packages/ DESTINATION packages)
+install(DIRECTORY examples/ DESTINATION examples)
 
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)

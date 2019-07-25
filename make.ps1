@@ -13,7 +13,11 @@
 
     [Parameter(HelpMessage="The location to install to")]
     [string]
-    $InstallPath = "default"
+    $InstallPath = "default",
+
+    [Parameter(HelpMessage="The version to use when packaging")]
+    [string]
+    $Version = "default"
 )
 
 # Sanitize config to conform to CMake build configs.
@@ -43,7 +47,7 @@ if ($Generator -eq "default")
 
 if ($InstallPath -eq "default")
 {
-    $InstallPath = Join-Path -Path $buildDir -ChildPath "build\install\$Config"
+    $InstallPath = Join-Path -Path $srcDir -ChildPath "build\install\$Config"
 }
 elseif (![System.IO.Path]::IsPathRooted($InstallPath))
 {
@@ -112,8 +116,8 @@ switch ($Command.ToLower())
     {
         if (Test-Path $outDir)
         {
-            Write-Output "Remove-Item -Path $outDir -Recurse"
-            Remove-Item -Path "$outDir" -Recurse
+            Write-Output "Remove-Item -Path $outDir -Recurse -Force"
+            Remove-Item -Path "$outDir" -Recurse -Force
         }
         break
     }
@@ -121,8 +125,8 @@ switch ($Command.ToLower())
     {
         if (Test-Path $buildDir)
         {
-            Write-Output "Remove-Item -Path $buildDir -Recurse"
-            Remove-Item -Path "$buildDir" -Recurse
+            Write-Output "Remove-Item -Path $buildDir -Recurse -Force"
+            Remove-Item -Path "$buildDir" -Recurse -Force
         }
         break
     }
@@ -219,7 +223,16 @@ switch ($Command.ToLower())
     }
     "package"
     {
+        switch ($Version)
+        {
+            "default" { $Version = (Get-Content $srcDir\VERSION) }
+            "date" { $Version = (Get-Date).ToString("yyyyMMdd") }
+        }
 
+        $package = "ponyc-x86_64-pc-windows-msvc-$Version.zip"
+        Write-Output "Creating $buildDir\$package"
+
+        Compress-Archive -Path $InstallPath -DestinationPath "$buildDir\$package" -Force
     }
     default
     {
