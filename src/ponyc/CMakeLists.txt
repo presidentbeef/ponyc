@@ -35,15 +35,6 @@ if (MSVC)
 
     set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
 
-    foreach (REQUIRED_LIB crypto.lib ssl.lib pcre2-8.lib)
-        add_custom_command(TARGET ponyc POST_BUILD
-            COMMAND $<$<CONFIG:Debug>:${CMAKE_COMMAND}> ARGS -E copy ${CMAKE_BINARY_DIR}/libs/lib/${REQUIRED_LIB} ${CMAKE_BINARY_DIR}/debug/${REQUIRED_LIB}
-            COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND}> ARGS -E copy ${CMAKE_BINARY_DIR}/libs/lib/${REQUIRED_LIB} ${CMAKE_BINARY_DIR}/release/${REQUIRED_LIB}
-            COMMAND $<$<CONFIG:RelWithDebInfo>:${CMAKE_COMMAND}> ARGS -E copy ${CMAKE_BINARY_DIR}/libs/lib/${REQUIRED_LIB} ${CMAKE_BINARY_DIR}/relwithdebinfo/${REQUIRED_LIB}
-            COMMAND $<$<CONFIG:MinSizeRel>:${CMAKE_COMMAND}> ARGS -E copy ${CMAKE_BINARY_DIR}/libs/lib/${REQUIRED_LIB} ${CMAKE_BINARY_DIR}/minsizerel/${REQUIRED_LIB}
-        )
-    endforeach()
-
     add_custom_command(TARGET ponyc POST_BUILD
         COMMAND $<$<CONFIG:Debug>:${CMAKE_COMMAND}> ARGS -E copy ${libponyrt_BINARY_DIR}/debug/libponyrt.lib ${CMAKE_BINARY_DIR}/debug/libponyrt.lib
         COMMAND $<$<CONFIG:Release>:${CMAKE_COMMAND}> ARGS -E copy ${libponyrt_BINARY_DIR}/release/libponyrt.lib ${CMAKE_BINARY_DIR}/release/libponyrt.lib
