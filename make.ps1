@@ -229,7 +229,7 @@ switch ($Command.ToLower())
             "date" { $Version = (Get-Date).ToString("yyyyMMdd") }
         }
 
-        $package = "ponyc-x86_64-pc-windows-msvc-$Version.zip"
+        $package = "ponyc-x86-64-pc-windows-msvc-$Version-$Config.zip"
         Write-Output "Creating $buildDir\$package"
 
         Compress-Archive -Path $InstallPath -DestinationPath "$buildDir\$package" -Force
