@@ -10,29 +10,23 @@ if(NOT DEFINED PONYC_LIBS_BUILD_TYPE)
     set(PONYC_LIBS_BUILD_TYPE Release)
 endif()
 
-ExternalProject_Add(pcre
-    URL https://ftp.pcre.org/pub/pcre/pcre2-10.33.zip
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-)
-
-ExternalProject_Add(libressl
-    URL https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-2.9.2.tar.gz
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-)
-
 ExternalProject_Add(gbenchmark
-    URL https://github.com/google/benchmark/archive/v1.5.0.zip
+    URL https://github.com/google/benchmark/archive/v1.5.0.tar.gz
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -DBENCHMARK_ENABLE_GTEST_TESTS=OFF --no-warn-unused-cli
 )
 
 ExternalProject_Add(googletest
-    URL https://github.com/google/googletest/archive/release-1.8.1.zip
+    URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=${PONYC_LIBS_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} -Dgtest_force_shared_crt=ON --no-warn-unused-cli
 )
 
 add_library(blake2 STATIC
     blake2/blake2b-ref.c)
-install(TARGETS blake2)
+install(TARGETS blake2
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    COMPONENT library
+)
 
 find_package(Git)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
