@@ -29,6 +29,7 @@ switch ($Config.ToLower())
     "minsizerel" { $Config = "MinSizeRel"; break; }
     default { throw "'$Config' is not a valid config; use Release, Debug, RelWithDebInfo, or MinSizeRel)." }
 }
+$config_lower = $Config.ToLower()
 
 if ($Generator -eq "default")
 {
@@ -43,20 +44,20 @@ if ($Generator -match 'Visual Studio')
 }
 else
 {
-    $buildDir = Join-Path -Path $srcDir -ChildPath ("build\build_" + $Config.ToLower())
+    $buildDir = Join-Path -Path $srcDir -ChildPath "build\build_$config_lower"
 }
 
 $libsDir = Join-Path -Path $srcDir -ChildPath "build\libs"
-$outDir = Join-Path -Path $srcDir -ChildPath ("build\" + $Config.ToLower())
+$outDir = Join-Path -Path $srcDir -ChildPath "build\$config_lower"
 
-# Write-Output "Source directory: $srcDir"
-# Write-Output "Build directory:  $buildDir"
-# Write-Output "Libs directory:   $libsDir"
-# Write-Output "Output directory: $outDir"
+Write-Output "Source directory: $srcDir"
+Write-Output "Build directory:  $buildDir"
+Write-Output "Libs directory:   $libsDir"
+Write-Output "Output directory: $outDir"
 
 if ($InstallPath -eq "default")
 {
-    $InstallPath = Join-Path -Path $srcDir -ChildPath "build\install\$Config"
+    $InstallPath = Join-Path -Path $srcDir -ChildPath "build\install\$config_lower"
 }
 elseif (![System.IO.Path]::IsPathRooted($InstallPath))
 {
@@ -137,8 +138,8 @@ switch ($Command.ToLower())
     {
         if (Test-Path ($srcDir + "\build"))
         {
-            Write-Output "Remove-Item -Path ($srcDir + "\build") -Recurse -Force"
-            Remove-Item -Path ($srcDir + "\build") -Recurse -Force
+            Write-Output "Remove-Item -Path `"$srcDir\build`" -Recurse -Force"
+            Remove-Item -Path "$srcDir\build" -Recurse -Force
         }
         break
     }
