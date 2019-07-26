@@ -20,10 +20,10 @@ find_package(GTest REQUIRED CONFIG PATHS "build/libs/lib/cmake/GTest" NO_DEFAULT
 find_package(benchmark REQUIRED CONFIG PATHS "build/libs/lib/cmake/benchmark" NO_DEFAULT_PATH)
 
 # LibPonyC tests assume that our outputs are two directories above the root directory.
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/minsizerel)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/relwithdebinfo)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/../debug)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/../release)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/../minsizerel)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/../relwithdebinfo)
 
 # Libs are now always built in release mode.
 set(PONY_LLVM_BUILD_MODE "1")
@@ -37,6 +37,7 @@ add_compile_definitions(
     PONY_ALWAYS_ASSERT
     PONY_COMPILER="${CMAKE_C_COMPILER}"
     PONY_ARCH="${CMAKE_SYSTEM_PROCESSOR}"
+    PONY_DEFAULT_PIC=true
     $<$<CONFIG:Debug>:PONY_BUILD_CONFIG="debug">
     $<$<CONFIG:Release>:PONY_BUILD_CONFIG="release">
     $<$<CONFIG:RelWithDebInfo>:PONY_BUILD_CONFIG="release">
@@ -49,8 +50,8 @@ add_compile_definitions(
     $<$<CONFIG:MinSizeRel>:PONY_VERSION_STR="${VERSION_NUMBER}-${GIT_REVISION} [minsizerel]\\nCompiled with: LLVM ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}">
 )
 
-# Disable some warnings for Windows, and compile Debug builds with the regular CRT.
 if (MSVC)
+    # Disable some warnings for Windows, and compile Debug builds with the regular CRT.
     add_compile_options(/wd4142 /wd4996 $<$<CONFIG:Debug>:/MD>)
     add_compile_definitions(
         _MBCS
@@ -61,6 +62,8 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fexceptions")
 endif (MSVC)
+
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
 
 add_subdirectory(src/libponyc)
 add_subdirectory(src/libponyrt)

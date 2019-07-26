@@ -69,8 +69,6 @@ target_compile_definitions(libponyc.tests
     PRIVATE PONY_PACKAGES_DIR="${PONY_PACKAGES_DIR}"
 )
 
-llvm_config(libponyc.tests all)
-
 target_link_directories(libponyc.tests
     PRIVATE ../../build/libs/lib
 )
@@ -81,6 +79,8 @@ target_link_libraries(libponyc.tests
     PRIVATE blake2
     PRIVATE GTest::gtest
 )
+
+llvm_config(libponyc.tests all)
 
 if (MSVC)
     target_link_libraries(libponyc.tests
@@ -94,4 +94,6 @@ if (MSVC)
     LIST(REMOVE_ITEM TARGET_LIBRARIES LTO)
     set_property(TARGET libponyc.tests PROPERTY LINK_LIBRARIES ${TARGET_LIBRARIES})
     set_property(TARGET libponyc.tests PROPERTY LINK_OPTIONS "/WHOLEARCHIVE:libponyrt.lib")
+else()
+    target_link_libraries(libponyc.tests PRIVATE atomic dl)
 endif (MSVC)

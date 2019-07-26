@@ -24,4 +24,6 @@ target_link_libraries(libponyrt.tests
 
 if (MSVC)
     target_link_libraries(libponyrt.tests PRIVATE dbghelp)
+else()
+    target_link_libraries(libponyrt.tests PRIVATE atomic dl)
 endif (MSVC)

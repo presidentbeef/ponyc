@@ -21,4 +21,6 @@ target_link_libraries(libponyrt.benchmarks
 
 if (MSVC)
     target_link_libraries(libponyrt.benchmarks PRIVATE dbghelp)
+else()
+    target_link_libraries(libponyrt.benchmarks PRIVATE atomic dl)
 endif (MSVC)

@@ -1,5 +1,10 @@
 project(libponyrt VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
 
+message(${CMAKE_SOURCE_DIR})
+
+set(_ll_src "${CMAKE_SOURCE_DIR}/src/libponyrt/lang/except_try_catch.ll")
+set(_ll_obj "${CMAKE_BINARY_DIR}/except_try_catch.o")
+
 add_library(libponyrt STATIC
     actor/actor.c
     actor/messageq.c
@@ -43,6 +48,14 @@ add_library(libponyrt STATIC
     sched/mutemap.c
     sched/scheduler.c
     sched/start.c
+    ${_ll_obj}
+)
+
+add_custom_command(
+    COMMAND "../../../libs/bin/llc" -relocation-model=pic -filetype=obj -o ${_ll_obj} ${_ll_src}
+    WORKING_DIRECTORY ${libponyrt_BINARY_DIR}
+    DEPENDS ${_ll_src}
+    OUTPUT ${_ll_obj}
 )
 
 target_include_directories(libponyrt
@@ -50,20 +63,9 @@ target_include_directories(libponyrt
     PRIVATE ../common
 )
 
-set(_ll_src "${libponyrt_SOURCE_DIR}/lang/except_try_catch.ll")
-set(_ll_obj "${libponyrt_BINARY_DIR}/except_try_catch.o")
-
-add_custom_command(TARGET libponyrt PRE_LINK
-    COMMAND "../../../libs/bin/llc" -relocation-model=pic -filetype=obj -o ${_ll_obj} ${_ll_src}
-    WORKING_DIRECTORY ${libponyrt_BINARY_DIR}
-    BYPRODUCTS ${_ll_obj}
-)
-
-target_link_libraries(libponyrt
-    PRIVATE ${_ll_obj}
-)
-
 if (MSVC)
     file(GLOB_RECURSE CFILES "${PROJECT_SOURCE_DIR}/*.c")
     set_source_files_properties(${CFILES} PROPERTIES LANGUAGE CXX)
+else()
+    target_link_libraries(libponyrt PRIVATE atomic dl)
 endif (MSVC)
