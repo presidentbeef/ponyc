@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
 # Grab the PonyC version number from the "VERSION" source file.
 file(STRINGS "VERSION" VERSION_NUMBER)
@@ -30,9 +30,13 @@ set(PONY_LLVM_BUILD_MODE "1")
 
 # Required definitions.  We use these generators so that the defines are correct for both *nix (where the config applies at configuration time) and Windows (where the config applies at build time).
 add_compile_definitions(
+    BUILD_COMPILER="${CMAKE_C_COMPILER_VERSION}"
+    _FILE_OFFSET_BITS=64
     LLVM_BUILD_MODE=${PONY_LLVM_BUILD_MODE}
     LLVM_VERSION="${LLVM_VERSION}"
     PONY_ALWAYS_ASSERT
+    PONY_COMPILER="${CMAKE_C_COMPILER}"
+    PONY_ARCH="${CMAKE_SYSTEM_PROCESSOR}"
     $<$<CONFIG:Debug>:PONY_BUILD_CONFIG="debug">
     $<$<CONFIG:Release>:PONY_BUILD_CONFIG="release">
     $<$<CONFIG:RelWithDebInfo>:PONY_BUILD_CONFIG="release">
@@ -53,6 +57,9 @@ if (MSVC)
         _CRT_SECURE_NO_WARNINGS
         $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>
     )
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fexceptions")
 endif (MSVC)
 
 add_subdirectory(src/libponyc)

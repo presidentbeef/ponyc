@@ -30,20 +30,29 @@ switch ($Config.ToLower())
     default { throw "'$Config' is not a valid config; use Release, Debug, RelWithDebInfo, or MinSizeRel)." }
 }
 
+if ($Generator -eq "default")
+{
+    $Generator = cmake --help | Where-Object { $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First 1
+}
+
 $srcDir = Split-Path $script:MyInvocation.MyCommand.Path
-$buildDir = Join-Path -Path $srcDir -ChildPath "build"
-$libsDir = Join-Path -Path $buildDir -ChildPath "libs"
-$outDir = Join-Path -Path $buildDir -ChildPath $Config
+
+if ($Generator -match 'Visual Studio')
+{
+    $buildDir = Join-Path -Path $srcDir -ChildPath "build\build"
+}
+else
+{
+    $buildDir = Join-Path -Path $srcDir -ChildPath ("build\build_" + $Config.ToLower())
+}
+
+$libsDir = Join-Path -Path $srcDir -ChildPath "build\libs"
+$outDir = Join-Path -Path $srcDir -ChildPath ("build\" + $Config.ToLower())
 
 # Write-Output "Source directory: $srcDir"
 # Write-Output "Build directory:  $buildDir"
 # Write-Output "Libs directory:   $libsDir"
 # Write-Output "Output directory: $outDir"
-
-if ($Generator -eq "default")
-{
-    $Generator = cmake --help | Where-Object { $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First 1
-}
 
 if ($InstallPath -eq "default")
 {
@@ -71,7 +80,7 @@ switch ($Command.ToLower())
             New-Item -ItemType "directory" -Path $libsDir | Out-Null
         }
 
-        $libsBuildDir = Join-Path -Path $buildDir -ChildPath "build_libs"
+        $libsBuildDir = Join-Path -Path $srcDir -ChildPath "build\build_libs"
         if (!(Test-Path -Path $libsBuildDir))
         {
             New-Item -ItemType "directory" -Path $libsBuildDir | Out-Null
@@ -126,10 +135,10 @@ switch ($Command.ToLower())
     }
     "distclean"
     {
-        if (Test-Path $buildDir)
+        if (Test-Path ($srcDir + "\build"))
         {
-            Write-Output "Remove-Item -Path $buildDir -Recurse -Force"
-            Remove-Item -Path "$buildDir" -Recurse -Force
+            Write-Output "Remove-Item -Path ($srcDir + "\build") -Recurse -Force"
+            Remove-Item -Path ($srcDir + "\build") -Recurse -Force
         }
         break
     }

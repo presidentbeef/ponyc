@@ -51,10 +51,10 @@ target_include_directories(libponyrt
 )
 
 set(_ll_src "${libponyrt_SOURCE_DIR}/lang/except_try_catch.ll")
-set(_ll_obj "${libponyrt_BINARY_DIR}/libponyrt.dir/except_try_catch.o")
+set(_ll_obj "${libponyrt_BINARY_DIR}/except_try_catch.o")
 
 add_custom_command(TARGET libponyrt PRE_LINK
-    COMMAND "../../libs/bin/llc" -filetype=obj -o ${_ll_obj} ${_ll_src}
+    COMMAND "../../../libs/bin/llc" -relocation-model=pic -filetype=obj -o ${_ll_obj} ${_ll_src}
     WORKING_DIRECTORY ${libponyrt_BINARY_DIR}
     BYPRODUCTS ${_ll_obj}
 )

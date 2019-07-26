@@ -737,7 +737,7 @@ The first time you clone the PonyC repository, run `make.ps1 libs` (in PowerShel
 
 ### Configure
 
-When the libraries are built successfully, run `make.ps1 configure -Config Release` (or `-Config Debug` for a debug build).  This will generate a Visual Studio solution file `build\PonyC.sln`, which you can use to build PonyC.  Do not add or remove source files via Visual Studio; you need to update the appropriate `CMakeLists.txt` file and re-run `make.ps1 configure` to regenerate the Visual Studio project files.
+When the libraries are built successfully, run `make.ps1 configure -Config Release` (or `-Config Debug` for a debug build).  This will generate a Visual Studio solution file `build\build\PonyC.sln`, which you can use to build PonyC.  Do not add or remove source files via Visual Studio; you need to update the appropriate `CMakeLists.txt` file and re-run `make.ps1 configure` to regenerate the Visual Studio project files.
 
 Or you can run `make.ps1 build -Config Release` to build PonyC without opening Visual Studio.
 
