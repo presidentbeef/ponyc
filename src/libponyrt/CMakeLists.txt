@@ -1,7 +1,5 @@
 project(libponyrt VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
 
-message(${CMAKE_SOURCE_DIR})
-
 set(_ll_src "${CMAKE_SOURCE_DIR}/src/libponyrt/lang/except_try_catch.ll")
 set(_ll_obj "${CMAKE_BINARY_DIR}/except_try_catch.o")
 

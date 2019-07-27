@@ -52,7 +52,7 @@ add_compile_definitions(
 
 if (MSVC)
     # Disable some warnings for Windows, and compile Debug builds with the regular CRT.
-    add_compile_options(/wd4142 /wd4996 $<$<CONFIG:Debug>:/MD>)
+    add_compile_options(/wd4142 /wd4996 $<$<CONFIG:Debug>:/MD> /WX)
     add_compile_definitions(
         _MBCS
         _CRT_SECURE_NO_WARNINGS
