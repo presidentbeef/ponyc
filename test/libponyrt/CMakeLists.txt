@@ -1,4 +1,4 @@
-project(libponyrt.tests VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+project(libponyrt.tests VERSION ${PONYC_VERSION} LANGUAGES C CXX)
 
 add_executable(libponyrt.tests
     util.cc

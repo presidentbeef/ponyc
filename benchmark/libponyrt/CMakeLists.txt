@@ -1,4 +1,4 @@
-project(libponyrt.benchmarks VERSION ${VERSION_NUMBER} LANGUAGES CXX)
+project(libponyrt.benchmarks VERSION ${PONYC_VERSION} LANGUAGES CXX)
 
 add_executable(libponyrt.benchmarks
     gbenchmark_main.cc

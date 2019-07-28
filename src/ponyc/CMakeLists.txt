@@ -1,4 +1,4 @@
-project(ponyc VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+project(ponyc VERSION ${PONYC_VERSION} LANGUAGES C CXX)
 
 add_executable(ponyc main.c)
 

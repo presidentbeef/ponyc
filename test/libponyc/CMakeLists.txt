@@ -1,4 +1,4 @@
-project(libponyc.tests VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+project(libponyc.tests VERSION ${PONYC_VERSION} LANGUAGES C CXX)
 
 add_executable(libponyc.tests
     annotations.cc

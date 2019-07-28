@@ -1,4 +1,4 @@
-project(libponyc VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+project(libponyc VERSION ${PONYC_VERSION} LANGUAGES C CXX)
 
 add_library(libponyc STATIC
     ponyc.c

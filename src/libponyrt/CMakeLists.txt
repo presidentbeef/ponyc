@@ -1,4 +1,4 @@
-project(libponyrt VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+project(libponyrt VERSION ${PONYC_VERSION} LANGUAGES C CXX)
 
 set(_ll_src "${CMAKE_SOURCE_DIR}/src/libponyrt/lang/except_try_catch.ll")
 set(_ll_obj "${CMAKE_BINARY_DIR}/except_try_catch.o")
