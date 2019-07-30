@@ -73,17 +73,11 @@ target_link_directories(libponyc.tests
     PRIVATE ../../build/libs/lib
 )
 
-target_link_libraries(libponyc.tests
-    PRIVATE libponyc
-    PRIVATE libponyrt
-    PRIVATE blake2
-    PRIVATE GTest::gtest
-)
-
-llvm_config(libponyc.tests all)
-
 if (MSVC)
     target_link_libraries(libponyc.tests
+        PRIVATE libponyc
+        PRIVATE libponyrt
+        PRIVATE blake2
         PRIVATE dbghelp
         PRIVATE ucrt
         PRIVATE Ws2_32
@@ -94,6 +88,21 @@ if (MSVC)
     LIST(REMOVE_ITEM TARGET_LIBRARIES LTO)
     set_property(TARGET libponyc.tests PROPERTY LINK_LIBRARIES ${TARGET_LIBRARIES})
     set_property(TARGET libponyc.tests PROPERTY LINK_OPTIONS "/WHOLEARCHIVE:libponyrt.lib")
+
+    set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
+
+    llvm_config(libponyc.tests all)
 else()
+    target_link_libraries(libponyc.tests PRIVATE
+        -Wl,--whole-archive
+        libponyrt
+        libponyc
+        blake2
+        -Wl,--no-whole-archive
+        GTest::gtest
+    )
+
+    llvm_config(libponyc.tests all)
+
     target_link_libraries(libponyc.tests PRIVATE atomic dl)
 endif (MSVC)

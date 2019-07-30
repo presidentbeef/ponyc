@@ -35,6 +35,9 @@ set(PONY_LLVM_BUILD_MODE "1")
 add_compile_definitions(
     BUILD_COMPILER="${CMAKE_C_COMPILER_VERSION}"
     _FILE_OFFSET_BITS=64
+    __STDC_CONSTANT_MACROS
+    __STDC_FORMAT_MACROS
+    __STDC_LIMIT_MACROS
     LLVM_BUILD_MODE=${PONY_LLVM_BUILD_MODE}
     LLVM_VERSION="${LLVM_VERSION}"
     PONY_ALWAYS_ASSERT
@@ -62,8 +65,9 @@ if (MSVC)
         $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>
     )
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fexceptions")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall -fpic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fexceptions -fpic")
+    add_link_options(-fpic -rdynamic)
 endif (MSVC)
 
 set(CMAKE_STATIC_LIBRARY_PREFIX "")

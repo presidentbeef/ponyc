@@ -12,16 +12,11 @@ target_link_directories(ponyc
     PRIVATE ../../build/libs/lib
 )
 
-target_link_libraries(ponyc
-    PRIVATE libponyc
-    PRIVATE libponyrt
-    PRIVATE blake2
-)
-
-llvm_config(ponyc all)
-
 if (MSVC)
     target_link_libraries(ponyc
+        PRIVATE libponyc
+        PRIVATE libponyrt
+        PRIVATE blake2
         PRIVATE dbghelp
         PRIVATE ucrt
         PRIVATE Ws2_32
@@ -35,6 +30,8 @@ if (MSVC)
 
     set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
 
+    llvm_config(ponyc all)
+
     # copy libponyrt to the ponyc directory for use when linking pony programs
     add_custom_command(TARGET ponyc POST_BUILD
         COMMAND $<$<CONFIG:Debug>:${CMAKE_COMMAND}> ARGS -E copy ${libponyrt_BINARY_DIR}/debug/libponyrt.lib ${CMAKE_BINARY_DIR}/../debug/libponyrt.lib
@@ -43,6 +40,16 @@ if (MSVC)
         COMMAND $<$<CONFIG:MinSizeRel>:${CMAKE_COMMAND}> ARGS -E copy ${libponyrt_BINARY_DIR}/minsizerel/libponyrt.lib ${CMAKE_BINARY_DIR}/../minsizerel/libponyrt.lib
     )
 else()
+    target_link_libraries(ponyc PRIVATE
+        -Wl,--whole-archive
+        libponyrt
+        libponyc
+        blake2
+        -Wl,--no-whole-archive
+    )
+
+    llvm_config(ponyc all)
+
     target_link_libraries(ponyc PRIVATE atomic dl)
 
     # copy libponyrt to the ponyc directory for use when linking pony programs
