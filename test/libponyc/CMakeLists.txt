@@ -78,6 +78,7 @@ if (MSVC)
         PRIVATE libponyc
         PRIVATE libponyrt
         PRIVATE blake2
+        PRIVATE GTest::gtest
         PRIVATE dbghelp
         PRIVATE ucrt
         PRIVATE Ws2_32
