@@ -67,7 +67,7 @@ if (MSVC)
 else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall -fpic")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fexceptions -fpic")
-    add_link_options(-fpic -rdynamic)
+    add_link_options(-rdynamic)
 endif (MSVC)
 
 set(CMAKE_STATIC_LIBRARY_PREFIX "")

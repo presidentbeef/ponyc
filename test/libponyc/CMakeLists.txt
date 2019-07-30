@@ -84,21 +84,21 @@ if (MSVC)
         PRIVATE Shlwapi
     )
 
+    set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
+
+    llvm_config(libponyc.tests all)
+
     get_target_property(TARGET_LIBRARIES libponyc.tests LINK_LIBRARIES)
     LIST(REMOVE_ITEM TARGET_LIBRARIES LTO)
     set_property(TARGET libponyc.tests PROPERTY LINK_LIBRARIES ${TARGET_LIBRARIES})
     set_property(TARGET libponyc.tests PROPERTY LINK_OPTIONS "/WHOLEARCHIVE:libponyrt.lib")
-
-    set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
-
-    llvm_config(libponyc.tests all)
 else()
     target_link_libraries(libponyc.tests PRIVATE
         -Wl,--whole-archive
         libponyrt
+        -Wl,--no-whole-archive
         libponyc
         blake2
-        -Wl,--no-whole-archive
         GTest::gtest
     )
 

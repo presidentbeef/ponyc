@@ -23,14 +23,14 @@ if (MSVC)
         PRIVATE Shlwapi
     )
 
+    set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
+
+    llvm_config(ponyc all)
+
     get_target_property(TARGET_LIBRARIES ponyc LINK_LIBRARIES)
     LIST(REMOVE_ITEM TARGET_LIBRARIES LTO)
     set_property(TARGET ponyc PROPERTY LINK_LIBRARIES ${TARGET_LIBRARIES})
     set_property(TARGET ponyc PROPERTY LINK_OPTIONS "/WHOLEARCHIVE:libponyrt.lib")
-
-    set_source_files_properties(main.c PROPERTIES LANGUAGE CXX)
-
-    llvm_config(ponyc all)
 
     # copy libponyrt to the ponyc directory for use when linking pony programs
     add_custom_command(TARGET ponyc POST_BUILD
