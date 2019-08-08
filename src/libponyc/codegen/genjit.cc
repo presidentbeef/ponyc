@@ -45,7 +45,11 @@ public:
     _ctx(llvm::make_unique<LLVMContext>())
   {
     _es.getMainJITDylib().setGenerator(
+#if PONY_LLVM < 900
       cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(_dl)));
+#else
+      cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(_dl.getGlobalPrefix())));
+#endif
   }
 
   static Expected<std::unique_ptr<PonyJIT>> create()
