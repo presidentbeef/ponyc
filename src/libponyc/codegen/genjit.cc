@@ -44,6 +44,7 @@ public:
     _mangle(_es, _dl),
     _ctx(llvm::make_unique<LLVMContext>())
   {
+    _obj_layer.setOverrideObjectFlagsWithResponsibilityFlags(true);
     _es.getMainJITDylib().setGenerator(
 #if PONY_LLVM < 900
       cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(_dl)));
